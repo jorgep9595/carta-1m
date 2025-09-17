@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nuestro Viaje Espacial 🚀</title>
+  <style>
+    :root {
+      --bg1: #090a0f;
+      --bg2: #1b2735;
+      --accent: #ff69b4;
+      --text: #ffffff;
+      --warp-duration: 1000ms;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      color: var(--text);
+      background: radial-gradient(ellipse at bottom, var(--bg2) 0%, var(--bg1) 100%);
+      overflow: hidden;
+    }
+
+    /* Estrellas */
+    .stars, .stars2, .stars3 {
+      position: fixed; inset: 0;
+      background-repeat: repeat;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .stars  { background-image: radial-gradient(2px 2px at 20px 30px, #ffffff, transparent);
+              animation: moveStars 50s linear infinite; }
+    .stars2 { background-image: radial-gradient(2px 2px at 50px 80px, #cfcfcf, transparent);
+              animation: moveStars 100s linear infinite; }
+    .stars3 { background-image: radial-gradient(1px 1px at 150px 120px, #999999, transparent);
+              animation: moveStars 150s linear infinite; }
+    @keyframes moveStars {
+      from { background-position: 0 0; }
+      to   { background-position: -10000px 5000px; }
+    }
+
+    /* Overlay warp */
+    #transitionOverlay {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 999;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0 2px, transparent 3px) 0 0/200px 200px,
+        radial-gradient(circle at 70% 60%, rgba(255,255,255,0.12) 0 2px, transparent 3px) 0 0/220px 220px,
+        radial-gradient(circle at 40% 80%, rgba(255,255,255,0.10) 0 2px, transparent 3px) 0 0/240px 240px,
+        rgba(0,0,0,0.55);
+      transform: scale(0.6);
+    }
+    #transitionOverlay.active {
+      animation: warp var(--warp-duration) ease-in-out forwards;
+    }
+    @keyframes warp {
+      0%   { opacity: 0; transform: scale(0.6); }
+      40%  { opacity: 1; transform: scale(1.1); filter: blur(1px); }
+      100% { opacity: 0; transform: scale(2);   filter: blur(2px); }
+    }
+
+    /* Escenas */
+    .scene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;   /* 👈 ahora empieza arriba */
+      padding: 40px 20px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 600ms ease, transform 600ms ease;
+      pointer-events: none;
+      overflow-y: auto;
+    }
+    .scene.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+
+    .content { width: min(920px, 92vw); display: grid; gap: 1rem; }
+    h1,h2,p { margin: 0; }
+    h1 { font-size: clamp(1.6rem, 4.8vw, 3rem); }
+    h2 { font-size: clamp(1.3rem, 4vw, 2.2rem); }
+    p  { font-size: clamp(1rem, 2.7vw, 1.2rem); line-height: 1.5; opacity: .92; }
+
+    .cta {
+      justify-self: center;
+      margin-top: .5rem;
+      padding: .9rem 1.2rem;
+      font-size: clamp(1rem, 2.8vw, 1.125rem);
+      border: none; border-radius: 12px;
+      background: var(--accent); color: white;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(255,105,180,.25);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .cta:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(255,105,180,.28); }
+    .cta:active { transform: translateY(0); box-shadow: 0 6px 14px rgba(255,105,180,.22); }
+
+    .photo {
+      width: min(720px, 92vw);
+      max-height: 60vh;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.35);
+      justify-self: center;
+    }
+
+    /* Progreso nave -> corazón */
+    .progress-bar {
+      position: fixed; top: 10px; left: 50%;
+      transform: translateX(-50%);
+      width: 80%; max-width: 500px;
+      height: 30px;
+      display: flex; align-items: center;
+      z-index: 1000;
+    }
+    .progress-line {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+      position: relative;
+      margin: 0 10px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .ship {
+      position: absolute;
+      top: -12px;
+      left: 0%;
+      transition: left 0.8s ease;
+    }
+    .progress-bar span {
+      font-size: 1.2rem;
+    }
+    .music-controls {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1200;
+    }
+
+    .music-controls button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 105, 180, 0.8);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .music-controls button:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="music-controls">
+    <button id="btnSong">🎵 Cambiar canción</button>
+    <button id="btnMute">🔇 Mute</button>
+  </div>
+
+  <!-- Lista de canciones -->
+  <audio id="player" preload="auto" loop></audio>
+  <!-- Estrellas -->
+  <div class="stars"></div>
+  <div class="stars2"></div>
+  <div class="stars3"></div>
+
+  <!-- Overlay -->
+  <div id="transitionOverlay"></div>
+
+  <!-- Progreso -->
+  <div class="progress-bar">
+    <span>🚀</span>
+    <div class="progress-line">
+      <div class="ship">🛸</div>
+    </div>
+    <span>❤️</span>
+  </div>
+
+  <!-- Escenas -->
+  <main>
+    <section class="scene active">
+      <div class="content">
+        <h1>🚀 Nuestro viaje especial</h1>
+        <p>Un mes contigo se siente como cruzar galaxias de la mano ✨</p>
+        <img class="photo" src="assets/foto18.png" alt="Recuerdo 18">
+        <button class="cta" data-action="advance">Despegar</button>
+      </div>
+    </section>
+
+    <section class="scene">
+      <div class="content">
+        <h2>🌌 Nuestro primer contacto 15/06</h2>
+        <img class="photo" src="assets/foto1.png" alt="Recuerdo 1">
+        <p>Recuerdo con cariño cuando jugábamos y el tiempo se detenía.</p>
+        <img class="photo" src="assets/foto5.png" alt="Recuerdo 5">
+        <p>Empezamos sutilmente a compartir horas y horas como si fuesen minutos.</p>
+        <img class="photo" src="assets/foto8.png" alt="Recuerdo 8">
+        <p>Las madrugadas contigo se volvieron mi momento favorito.</p>
+        <img class="photo" src="assets/foto6.png" alt="Recuerdo 6">
+        <p>Me fuiste mostrando un nuevo mundo, incluso a Samantha y Rachel.</p>
+        <img class="photo" src="assets/foto12.jpg" alt="Recuerdo 12">
+        <p>Y muchas otras cosas muy interesantes.</p>
+        <img class="photo" src="assets/foto14.jpg" alt="Recuerdo 14">
+        <p>Aún con dudas, con miedos y mis inseguridades, decidí querer lo mejor para mí y eso era escogerte a ti.</p>
+        <button class="cta" data-action="advance">Siguiente</button>
+      </div>
+    </section>
+
+    <section class="scene">
+      <div class="content">
+        <h2>✨ Un recuerdo inolvidable 01/08</h2>
+        <img class="photo" src="assets/foto13.png" alt="Recuerdo 13">
+        <p>Jamás olvidaré esa tarde-noche que se me quedó orbitando el corazón, junto a las tres mentiras y nuestra confesión.</p>
+        <img class="photo" src="assets/foto7.png" alt="Recuerdo 7">
+        <p>A partir de ese día mi vida cambió. Ya me dabas luz, pero saber que te sentías igual...</p>
+        <img class="photo" src="assets/foto15.jpg" alt="Recuerdo 15">
+        <p>... empezó a darle color a mi vida, segundo a segundo, especialmente cuando me mostrabas más de ti.</p>
+        <img class="photo" src="assets/foto16.jpg" alt="Recuerdo 16">
+        <p>Y aunque me emocioné un poco y pregunté rápido, escuchar tu "Sí" le dio un nuevo sentido a mi vida.</p>
+        <button class="cta" data-action="advance">Siguiente</button>
+      </div>
+    </section>
+
+    <section class="scene">
+      <div class="content">
+        <h2>✨ y así... empezó. 17/08</h2>
+        <img class="photo" src="assets/foto2.png" alt="Recuerdo 2">
+        <p>Lento pero seguro continuamos, hasta que estuvimos listos.</p>
+        <img class="photo" src="assets/foto4.png" alt="Recuerdo 4">
+        <p>Me dijiste "Te amo" y desde ese entonces es mi melodía favorita.</p>
+        <img class="photo" src="assets/foto17.png" alt="Recuerdo 17">
+        <p>Te volviste mi Bunny Girl y yo tu lobo domesticado dispuesto a darlo todo por ti.</p>
+        <img class="photo" src="assets/foto10.png" alt="Recuerdo 10">
+        <p>Juntos empezamos a mostrarle al mundo nuestra conexión.</p>
+        <img class="photo" src="assets/foto9.jpg" alt="Recuerdo 9">
+        <p>Me encanta cambiar contigo la foto de perfil y que todos vean lo que estamos creando.</p>
+        <button class="cta" data-action="advance">Siguiente</button>
+      </div>
+    </section>
+
+    <section class="scene">
+      <div class="content">
+        <h2>💌 Una carta para ti</h2>
+        <p>Este último mes contigo ha sido el más increíble de mi vida. Quizás pienses que estoy exagerando, pero a tu lado todo se siente distinto. Más brillante, más emocionante, de colores. Siento que me brindas calidez y paz, me has mostrado una forma de amar y vivir que aún no conocía.</p>
+
+        <p>Quiero seguir aprendiendo contigo, aprender más de ti, tomarte de la mano y juntos caminar hacia lo que soñamos. Quiero esforzarme siempre para darte lo que te mereces, porque eres una chica increíble y no hay nada que desee más que hacerte feliz. Imaginar un hogar contigo, darte esa casita que dibujaste alguna vez.</p>
+        <img class="photo" src="assets/foto3.png" alt="Recuerdo 2">
+        <p>Sé que ya conociste mi lado torpe y pendejo. Que puedo llegar a decir y hacer cosas estúpidas, pero mis disculpas siempre son honestas y prometo no repetirlas, porque quiero que sepas que mi corazón e intenciones siempre serán hacía ti, porque siempre pienso en ti y cómo puedo mejorar.</p>
+        <p>Me sigo sorprendiendo de buena manera lo bien que se siente estar contigo... la magia que es tenerte en mi vida. Escuchar tu voz, tu risa, tus textos, tus soniditos y tus ocurrencias. Realmente me encantas, todo. No puedo dejar de emocionarme por saber que esto apenas empieza, quiero más meses, más años y toda una vida a tu lado. Quiero ser más que tu esposo.</p>
+        <p>No me caben las palabras o el orden para expresarte todo, siempre siento que dejo algo fuera o que no logro explicar completamente algo que me enamora de ti. Hoy, en el primer mes,  quiero decirte que te amé, te amo y te amaré, hasta alcanzar el fin de la galaxia juntos, Michelle. ❤️</p>
+        <br><br>
+        <p style="text-align: right;">Tuyo siempre, </p>
+        <p style="text-align: right;">Jorge</p>
+        <button class="cta" data-action="restart">Reiniciar viaje</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const scenes = document.querySelectorAll('.scene');
+    const overlay = document.getElementById('transitionOverlay');
+    const ship = document.querySelector('.ship');
+    let current = 0;
+
+    function showTransition(callback, duration = 1000) {
+      overlay.style.animationDuration = duration + 'ms';
+      overlay.classList.add('active');
+      setTimeout(() => {
+        callback();
+        overlay.classList.remove('active');
+      }, duration);
+    }
+
+    function goTo(idx) {
+      scenes[current].classList.remove('active');
+      current = (idx + scenes.length) % scenes.length;
+      scenes[current].classList.add('active');
+      updateProgress();
+    }
+
+    function advance() {
+      showTransition(() => goTo(current + 1), 1000);
+    }
+
+    function restart() {
+      showTransition(() => goTo(0), 800);
+    }
+
+    function updateProgress() {
+      const progress = current / (scenes.length - 1);
+      ship.style.left = `${progress * 100}%`;
+    }
+
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      if (action === 'advance') advance();
+      if (action === 'restart') restart();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (['Enter',' ','ArrowRight'].includes(e.key)) {
+        e.preventDefault(); advance();
+      }
+      if (e.key.toLowerCase() === 'r') restart();
+    });
+
+    // Inicializa progreso
+    updateProgress();
+
+    // 🎶 Música
+    const player = document.getElementById('player');
+    const btnSong = document.getElementById('btnSong');
+    const btnMute = document.getElementById('btnMute');
+
+    // lista de canciones
+    const songs = [
+      "assets/sounds/cancion1.mp3",
+      "assets/sounds/cancion2.mp3",
+      "assets/sounds/cancion3.mp3"
+    ];
+    let currentSong = 0;
+    let isMuted = false;
+
+    // carga la primera canción
+    player.volume = 0.2;
+    player.src = songs[currentSong];
+
+    // al dar click en cambiar canción
+    btnSong.addEventListener('click', () => {
+      currentSong = (currentSong + 1) % songs.length;
+      player.src = songs[currentSong];
+      player.play();
+    });
+
+    // mute/unmute
+    btnMute.addEventListener('click', () => {
+      isMuted = !isMuted;
+      player.muted = isMuted;
+      btnMute.textContent = isMuted ? "🔊 Unmute" : "🔇 Mute";
+    });
+
+    // iniciar música automática cuando empieza la experiencia
+    document.querySelector('[data-action="advance"]').addEventListener('click', () => {
+      if (player.paused) {
+        player.play().catch(() => {
+          console.log("El navegador bloqueó autoplay hasta interacción.");
+        });
+      }
+    }, { once: true });
+
+    // 🎇 Parallax con scroll
+    const stars = document.querySelector('.stars');
+    const stars2 = document.querySelector('.stars2');
+    const stars3 = document.querySelector('.stars3');
+
+    // función para actualizar parallax
+    function updateParallax() {
+      const activeScene = document.querySelector('.scene.active');
+      if (!activeScene) return;
+
+      const scrollY = activeScene.scrollTop;
+      stars.style.backgroundPosition = `0 ${scrollY * 0.3}px`;
+      stars2.style.backgroundPosition = `0 ${scrollY * 0.5}px`;
+      stars3.style.backgroundPosition = `0 ${scrollY * 0.7}px`;
+    }
+
+    // escuchar scroll en cada escena activa
+    scenes.forEach(scene => {
+      scene.addEventListener('scroll', () => {
+        if (scene.classList.contains('active')) {
+          updateParallax();
+        }
+      });
+    });
+
+    function goTo(idx) {
+      scenes[current].classList.remove('active');
+      current = (idx + scenes.length) % scenes.length;
+      scenes[current].classList.add('active');
+      scenes[current].scrollTop = 0;
+      updateProgress();
+    }
+
+
+  </script>
+</body>
+</html>
